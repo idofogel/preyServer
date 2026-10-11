@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PrayerType {
+  SHACHARIT
+  MINCHA
+  ARVIT
+}
+
+// A minyan being gathered (or in progress) at a location.
+model Prayer {
+  id           String     @id @default(uuid())
+  lat          Float
+  lng          Float
+  details      String     @default("")
+  prayerType   PrayerType @default(SHACHARIT)
+  createdAt    DateTime   @default(now())
+  presentCount Int        @default(0)
+  started      Boolean    @default(false)
+  seekerToken  String
+
+  interests Interest[]
+
+  @@index([seekerToken])
+}
+
+// One participant's expressed interest ("I'm coming") in a Prayer.
+// Modeled as its own row (rather than a counter on Prayer) so a second
+// click from the same participant/browser reliably decrements instead
+// of double counting.
+model Interest {
+  id               String   @id @default(uuid())
+  prayerId         String
+  participantToken String
+  createdAt        DateTime @default(now())
+
+  prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
+
+  @@unique([prayerId, participantToken])
+}

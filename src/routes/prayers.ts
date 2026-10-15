@@ -11,7 +11,7 @@ type PrayerWithCount = Prayer & { _count: { interests: number } };
 
 const PRAYER_TYPES = ["SHACHARIT", "MINCHA", "ARVIT"] as const;
 
-function toDTO(prayer: PrayerWithCount): PrayerDTO {
+export function toDTO(prayer: PrayerWithCount): PrayerDTO {
   return {
     id: prayer.id,
     lat: prayer.lat,
@@ -29,7 +29,7 @@ function toOwnerDTO(prayer: PrayerWithCount): PrayerOwnerDTO {
   return { ...toDTO(prayer), seekerToken: prayer.seekerToken };
 }
 
-const WITH_COUNT = { include: { _count: { select: { interests: true } } } } as const;
+export const WITH_COUNT = { include: { _count: { select: { interests: true } } } } as const;
 
 // GET /api/prayers?lat=&lng=&radiusKm=&participantToken=
 router.get("/", async (req, res) => {

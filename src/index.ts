@@ -3,7 +3,8 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { initSocket } from "./socket";
-import prayersRouter from "./routes/prayers";
+import prayersRouter, { toDTO, WITH_COUNT } from "./routes/prayers";
+import { prisma } from "./db";
 
 const PORT = Number(process.env.PORT ?? 4000);
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
@@ -14,6 +15,13 @@ app.use(express.json());
 app.get("/check", (_req, res) => res.json({ checked: true }));
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/prayers", prayersRouter);
+app.get("/api/all_prayers", async (_req, res) => {
+  const prayers = await prisma.prayer.findMany({
+    ...WITH_COUNT,
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(prayers.map(toDTO));
+});
 
 const httpServer = createServer(app);
 initSocket(httpServer, CLIENT_ORIGIN);
